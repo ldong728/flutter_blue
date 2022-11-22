@@ -77,7 +77,7 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
     private Application application;
     private Activity activity;
 
-    private static final int REQUEST_FINE_LOCATION_PERMISSIONS = 1452;
+    private static final int REQUEST_BLUETOOTH_PERMISSION = 1000;
     static final private UUID CCCD_ID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     private final Map<String, BluetoothDeviceCache> mDevices = new HashMap<>();
     private LogLevel logLevel = LogLevel.EMERGENCY;
@@ -238,19 +238,33 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
             case "startScan":
             {
-                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(
-                            activity,
-//                            activityBinding.getActivity(),
-                            new String[] {
-                                    Manifest.permission.ACCESS_FINE_LOCATION
-                            },
-                            REQUEST_FINE_LOCATION_PERMISSIONS);
-                    pendingCall = call;
-                    pendingResult = result;
-                    break;
+                List<String> mPermissionList = new ArrayList<>();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    mPermissionList.add(Manifest.permission.BLUETOOTH_SCAN);
+                    mPermissionList.add(Manifest.permission.BLUETOOTH_CONNECT);
+                    //根据实际需要申请定位权限
+                    //mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+                    //mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
+                } else {
+                    mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+                    mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
                 }
+                ActivityCompat.requestPermissions(activity, mPermissionList.toArray(new String[0]), REQUEST_BLUETOOTH_PERMISSION);
+
+
+//                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+//                        != PackageManager.PERMISSION_GRANTED) {
+//                    ActivityCompat.requestPermissions(
+//                            activity,
+////                            activityBinding.getActivity(),
+//                            new String[] {
+//                                    Manifest.permission.ACCESS_FINE_LOCATION
+//                            },
+//                            REQUEST_FINE_LOCATION_PERMISSIONS);
+//                    pendingCall = call;
+//                    pendingResult = result;
+//                    break;
+//                }
                 startScan(call, result);
                 break;
             }
@@ -639,7 +653,7 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
     @Override
     public boolean onRequestPermissionsResult(
             int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == REQUEST_FINE_LOCATION_PERMISSIONS) {
+        if (requestCode == REQUEST_BLUETOOTH_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startScan(pendingCall, pendingResult);
             } else {
