@@ -238,33 +238,58 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
 
             case "startScan":
             {
-                List<String> mPermissionList = new ArrayList<>();
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    mPermissionList.add(Manifest.permission.BLUETOOTH_SCAN);
-                    mPermissionList.add(Manifest.permission.BLUETOOTH_CONNECT);
-                    //根据实际需要申请定位权限
-                    //mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-                    //mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
-                } else {
-                    mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-                    mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
-                }
-                ActivityCompat.requestPermissions(activity, mPermissionList.toArray(new String[0]), REQUEST_BLUETOOTH_PERMISSION);
-
-
-//                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
-//                        != PackageManager.PERMISSION_GRANTED) {
-//                    ActivityCompat.requestPermissions(
-//                            activity,
-////                            activityBinding.getActivity(),
-//                            new String[] {
-//                                    Manifest.permission.ACCESS_FINE_LOCATION
-//                            },
-//                            REQUEST_FINE_LOCATION_PERMISSIONS);
-//                    pendingCall = call;
-//                    pendingResult = result;
-//                    break;
+//                List<String> mPermissionList = new ArrayList<>();
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//                    mPermissionList.add(Manifest.permission.BLUETOOTH_SCAN);
+//                    mPermissionList.add(Manifest.permission.BLUETOOTH_CONNECT);
+//                    //根据实际需要申请定位权限
+//                    //mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+//                    //mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
+//                } else {
+//                    mPermissionList.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+//                    mPermissionList.add(Manifest.permission.ACCESS_FINE_LOCATION);
 //                }
+//                ActivityCompat.requestPermissions(activity, mPermissionList.toArray(new String[0]), REQUEST_BLUETOOTH_PERMISSION);
+
+                if(Build.VERSION.SDK_INT>=23 && Build.VERSION.SDK_INT<=30){
+                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(
+                                activity,
+//                            activityBinding.getActivity(),
+                                new String[] {
+                                        Manifest.permission.ACCESS_FINE_LOCATION
+                                },
+                                REQUEST_BLUETOOTH_PERMISSION);
+                        pendingCall = call;
+                        pendingResult = result;
+                        break;
+                    }
+                }
+                if(Build.VERSION.SDK_INT>=31){
+                    if (ContextCompat.checkSelfPermission(activity, Manifest.permission.BLUETOOTH_CONNECT)
+                            != PackageManager.PERMISSION_GRANTED) {
+//                        ActivityCompat.requestPermissions(
+//                                activity,
+////                            activityBinding.getActivity(),
+//                                new String[] {
+//                                        Manifest.permission.BLUETOOTH_CONNECT,
+//                                        Manifest.permission.BLUETOOTH_SCAN
+//                                },
+//                                REQUEST_BLUETOOTH_PERMISSION);
+                        ActivityCompat.requestPermissions(activity,
+                                new String[] {
+                                        Manifest.permission.BLUETOOTH_SCAN,
+                                        Manifest.permission.BLUETOOTH_CONNECT
+                                },
+                                REQUEST_BLUETOOTH_PERMISSION);
+
+                        pendingCall = call;
+                        pendingResult = result;
+                        break;
+                    }
+                }
+
                 startScan(call, result);
                 break;
             }
@@ -666,6 +691,21 @@ public class FlutterBluePlugin implements FlutterPlugin, ActivityAware, MethodCa
         }
         return false;
     }
+//    private ActivityResultLauncher<String> requestPermissionLauncher =
+//            registerForActivityResult(new RequestPermission(), isGranted -> {
+//                if (isGranted) {
+//
+//                    // Permission is granted. Continue the action or workflow in your
+//                    // app.
+//                } else {
+//                    // Explain to the user that the feature is unavailable because the
+//                    // feature requires a permission that the user has denied. At the
+//                    // same time, respect the user's decision. Don't link to system
+//                    // settings in an effort to convince the user to change their
+//                    // decision.
+//                }
+//            });
+
 
     private BluetoothGatt locateGatt(String remoteId) throws Exception {
         BluetoothDeviceCache cache = mDevices.get(remoteId);
